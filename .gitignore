@@ -1,0 +1,13 @@
+# Database & runtime (jangan pernah push)
+pgdata/
+.n8n/
+.n8n-files/
+.env
+
+# Secrets & data penting (sudah pernah bocor, wajib ignore)
+instances/
+credential.json
+backup_db_mas.sql
+*.sql
+My workflow.json
+*.log
