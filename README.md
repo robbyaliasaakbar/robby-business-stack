@@ -1,110 +1,107 @@
-# robby-business-stack
+# My Small Business Stack
 
-Catatan buat gue sendiri. Stack bisnis kecil: Postgres + Evolution API (WA) + n8n.
-Gue bikin simpel biar gue gampang tracking polanya.
+Hey, thanks for stopping by.
+This is just my small setup for running a tiny business flow at home.
+Nothing fancy here. I built it to learn and to keep customer chat in one place.
+Feel free to copy it and change it to fit your own needs.
 
-## Pola yang gue pake
+## Why this exists
 
-```text
-n8n (:5678) <--> Evolution API (:8080) <--> WhatsApp
-   |
-   v
-Postgres (:5432)
-```
+I wanted chat and data and automation to live together without too much setup.
+I also wanted something I can turn off and on with one command.
+So I put everything in one compose file and shared it here.
 
-- n8n = otaknya. Workflow gue baca/tulis DB, panggil Evolution API.
-- Evolution API = tangannya. Buat kirim/terima WA, session kesimpen di `instances/`.
-- Postgres = ingatannya. Nyimpen pelanggan, jadwal, petugas.
+## What lives here
 
-## Versi yang gue pake
+- postgres on 5432 for memory
+- evolution-api on 8080 for WhatsApp
+- n8n on 5678 for brain
 
-- n8n: 2.20.9
-- PostgreSQL: 18.4
-- Evolution API: v2.3.7
+## How it fits together
 
-Detail ada di `versi software.txt` sama `docker-compose.yml` kalau gue lupa.
+The automation tool is the brain. You build the flow there.
+When a message comes in, the brain reads and writes to the database.
+Then it calls the chat tool to send or receive WhatsApp.
+The database is the memory. It keeps customers and schedules.
+The chat sessions live in the instances folder.
 
-## File-file gue
+## Quick start
 
-Yang boleh masuk repo (aman):
+You need Docker plus the compose plugin.
+You need your own env file because secrets are not in this repo.
 
-```text
-README.md
-docker-compose.yml
-.gitignore
-versi software.txt
-```
+- copy env example to env
+- fill in your own password and keys in the new env file
+- check config with compose config
+- run compose up
+- open localhost 5678 for automation
+- open localhost 8080 for chat tool
 
-Yang jangan sampe masuk repo (pengingat buat gue, udah di-ignore):
-
-```text
-.env              -> kunci Evolution API gue
-instances/        -> session WA gue, 15MB+
-credential.json   -> kredensial n8n gue
-backup_db_mas.sql -> dump DB isi data pelanggan gue
-My workflow.json  -> workflow n8n gue (146 nodes)
-pgdata/           -> data Postgres gue
-.n8n/             -> data n8n gue
-.n8n-files/       -> file n8n gue
-```
-
-Pelajaran buat gue: semua di atas itu pernah bocor ke history. Udah gue bersihin total + bikin repo ulang. Jangan sampe kepush lagi.
-
-## Kalau gue mau jalanin lagi
-
-Docker + Compose harus kepasang dulu ya Rob.
-
-1. Gue harus set password dulu (nggak ada default di repo):
-
-```bash
-export POSTGRES_PASSWORD='ganti_dengan_password_baru_yang_kuat'
-```
-
-2. Pastiin `.env` ada di folder ini (buat Evolution, nggak ikut repo).
-
-3. Cek config dulu (nggak langsung jalanin):
-
-```bash
+```sh
+cp .env-example .env
 docker compose config
-```
-
-4. Baru jalanin:
-
-```bash
-docker compose up -d
-```
-
-5. Cek:
-
-```bash
-docker ps
-```
-
-Harusnya ada 3 yang UP: `postgres`, `evolution_api_mas_obi`, `n8n`. Kalau kurang, berarti ada yang mati.
-
-## Port langganan gue
-
-- Postgres: `5432`
-- n8n: `http://localhost:5678`
-- Evolution: `http://localhost:8080` (cek `SERVER_PORT` di `.env` kalau lupa)
-
-## Perintah yang sering gue pake
-
-```bash
-docker ps
-docker compose logs -f
+docker compose up
+docker compose ps
+docker compose logs
 docker compose down
-docker compose up -d
 ```
 
-## Pengingat keamanan buat gue
+## Ports
 
-1. Rob, jangan pernah `git add` file yang di-ignore di atas.
-2. Kalau nggak sengaja ke-add, batalin pake `git rm --cached <nama-file>`, bukan `rm`.
-3. Semua kunci yang pernah kepush anggap aja hangus, harus gue revoke:
-   - Password Postgres gue
-   - `AUTHENTICATION_API_KEY` di `.env` gue
-   - Google Service Account key gue
-   - Header Auth key gue
-   - Logout + scan ulang semua session WA di `instances/` gue
-4. Repo ini gue bikin private pas setup. Kalau mau gue public-in, pastiin dulu isinya cuma 4 file aman. Cara cek: `git ls-files`.
+- 5432 for database
+- 5678 for automation UI
+- 8080 for chat tool
+
+## Env vars
+
+These live in your env file. The example file has empty values.
+
+- POSTGRES_PASSWORD for database
+- AUTHENTICATION_API_KEY for chat auth
+- SERVER_PORT for chat port
+- SERVER_URL for public URL
+- DATABASE_PROVIDER for database type
+- DATABASE_CONNECTION_URI for database link
+
+## Files
+
+This part is important. Some files are safe to share. Some files must stay private.
+
+Safe to share:
+
+- README.md
+- docker-compose.yml
+- versi software.txt
+- .gitignore
+
+Keep private:
+
+- .env for keys
+- instances for WhatsApp sessions
+- credential.json for automation creds
+- backup_db_mas.sql for database dump
+- My workflow.json for automation flow
+- pgdata for database files
+- .n8n for automation data
+- .n8n-files for automation files
+
+## Common issues
+
+If the brain cannot reach the database, check that Postgres is up and the password matches.
+If the chat tool cannot connect, check the port in your env file.
+If a port is busy, stop the other app that uses that port and try again.
+
+## Safety notes
+
+I learned this the hard way. Secrets once leaked must be treated as burned.
+
+- never add private files to git
+- if you add by mistake, remove from cache, do not just delete the file
+- revoke old passwords and keys and scan WhatsApp sessions again
+- keep this repo private until only safe files remain
+- check tracked files with git ls-files
+
+## Notes
+
+This is for local use and learning. It is not hardened for public servers.
+I still tweak it from time to time. Thanks for reading.
